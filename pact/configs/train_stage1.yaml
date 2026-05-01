@@ -1,0 +1,75 @@
+# XGenDet Stage 1 Training Configuration
+
+# Model
+model:
+  clip_model: "ViT-L/14"
+  num_prompt_tokens: 8
+  num_prototypes: 128
+  proto_dim: 128
+  shuffle_patch_size: 32
+  tune_layer_norm: true
+  dropout: 0.2
+
+# Training
+training:
+  lr: 0.0001
+  lr_ln: 0.000001      # Learning rate for LayerNorm params
+  weight_decay: 0.01
+  batch_size: 64
+  epochs: 15
+  warmup_steps: 500
+  grad_accum: 1         # Increase for smaller GPUs
+  seed: 42
+  patience: 3           # Early stopping patience
+
+# Loss weights
+loss:
+  w_family: 0.5
+  w_proto_div: 0.3
+  w_proto_compact: 0.2
+  w_heatmap: 0.3
+  w_attr: 0.1
+  w_calib: 0.2
+  attr_margin: 0.3
+
+# Data
+data:
+  data_root: "/home/sachin.chaudhary/GTA"
+  crop_size: 224
+  num_workers: 2
+  max_samples_per_class: null   # Set to limit per-class samples
+  jpeg_prob: 0.5
+  blur_prob: 0.5
+
+  # In-domain generators (training)
+  id_generators:
+    - ADM
+    - BigGAN
+    - glide
+    - LDM
+    - Midjourney
+    - progan
+    - VQDM
+    - wukong
+
+  # Out-of-domain generators (validation)
+  ood_generators:
+    - crn
+    - cyclegan
+    - dalle
+    - deepfake
+    - gaugan
+    - imle
+    - san
+    - seeingdark
+    - stargan
+    - stylegan
+    - stylegan2
+    - whichfaceisreal
+
+# Logging
+logging:
+  output_dir: "./checkpoints"
+  exp_name: "xgendet_stage1"
+  log_freq: 100
+  save_freq: 1

@@ -1,0 +1,147 @@
+{
+  "cluster_0": [
+    {
+      "gen": "cd_FFIW",
+      "split": "CD",
+      "n_test": 6832
+    }
+  ],
+  "cluster_1": [
+    {
+      "gen": "cm_AdobeFirefly",
+      "split": "CM",
+      "n_test": 600
+    },
+    {
+      "gen": "cm_StarryAI",
+      "split": "CM",
+      "n_test": 600
+    }
+  ],
+  "cluster_2": [
+    {
+      "gen": "cd_dreamina",
+      "split": "CD",
+      "n_test": 952
+    }
+  ],
+  "cluster_3": [
+    {
+      "gen": "cf_codeformer",
+      "split": "CF",
+      "n_test": 1750
+    },
+    {
+      "gen": "cf_faceadapter",
+      "split": "CF",
+      "n_test": 294
+    },
+    {
+      "gen": "cm_MAGI",
+      "split": "CM",
+      "n_test": 1048
+    },
+    {
+      "gen": "id_Hallo2",
+      "split": "ID",
+      "n_test": 1660
+    }
+  ],
+  "cluster_4": [
+    {
+      "gen": "id_facevid2vid",
+      "split": "ID",
+      "n_test": 1000
+    }
+  ],
+  "cluster_5": [
+    {
+      "gen": "cd_deepfacelab",
+      "split": "CD",
+      "n_test": 3094
+    }
+  ],
+  "cluster_6": [
+    {
+      "gen": "cm_Flux11Pro",
+      "split": "CM",
+      "n_test": 600
+    },
+    {
+      "gen": "cm_Infinity",
+      "split": "CM",
+      "n_test": 4200
+    },
+    {
+      "gen": "cm_hart",
+      "split": "CM",
+      "n_test": 4201
+    },
+    {
+      "gen": "id_Midjourney",
+      "split": "ID",
+      "n_test": 600
+    }
+  ],
+  "cluster_7": [
+    {
+      "gen": "id_ff",
+      "split": "ID",
+      "n_test": 8959
+    }
+  ],
+  "cluster_8": [
+    {
+      "gen": "cd_hailuo",
+      "split": "CD",
+      "n_test": 1000
+    }
+  ],
+  "cluster_9": [
+    {
+      "gen": "cd_infiniteyou",
+      "split": "CD",
+      "n_test": 2960
+    }
+  ],
+  "cluster_10": [
+    {
+      "gen": "cf_starganv2",
+      "split": "CF",
+      "n_test": 2000
+    }
+  ],
+  "cluster_11": [
+    {
+      "gen": "cf_iclight",
+      "split": "CF",
+      "n_test": 2082
+    }
+  ],
+  "cluster_12": [
+    {
+      "gen": "cf_infiniteyou",
+      "split": "CF",
+      "n_test": 3244
+    },
+    {
+      "gen": "cf_pulid",
+      "split": "CF",
+      "n_test": 3360
+    }
+  ],
+  "cluster_13": [
+    {
+      "gen": "cd_gpt4o",
+      "split": "CD",
+      "n_test": 630
+    }
+  ],
+  "cluster_14": [
+    {
+      "gen": "id_StyleGAN",
+      "split": "ID",
+      "n_test": 600
+    }
+  ]
+}

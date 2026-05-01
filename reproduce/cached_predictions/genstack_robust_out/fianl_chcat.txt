@@ -1,0 +1,1903 @@
+ ▐▛███▜▌   Claude Code v2.1.121
+▝▜█████▛▘  Opus 4.7 · Claude Max
+  ▘▘ ▝▝    ~/xgendet/checkpoints/final_results/genstack_robust_out
+
+✻ Conversation compacted (ctrl+o for history)
+
+
+❯ /compact compact so that after compacting we have a clear picture of:         
+  - what was our plan                                                           
+  - what we have done until now                                                 
+  - what is left                                                                
+  - what are our plans in future                                                
+  - a proper documentation of everything so that i can brainstorm and improve   
+further and ask questions                                                       
+  ⎿  Compacted (ctrl+o to see full summary)
+     PreCompact [sh /home/sachin.chaudhary/.claude/hooks/pre-compact.sh] 
+     completed successfully
+  ⎿  Read training/genstack_robust_run.py (263 lines)
+  ⎿  Read training/genstack_robust_smoke.py (194 lines)
+  ⎿  Referenced file paper_draft/genstack_paper_unzipped/new_paper/main.tex
+  ⎿  Referenced file ../../../tmp/genstack_pres/GenStack_Presentation/main.tex
+  ⎿  Read training/robustness_pact_only.py (177 lines)
+  ⎿  Plan file referenced (~/.claude/plans/peaceful-prancing-kurzweil.md)
+
+❯ so since this si done now tell me what all ablations did you run recnetly and 
+   what all got compelted                                                       
+
+  Read 5 files, listed 3 directories (ctrl+o to expand)
+
+● Here's the full status of ablations from the recent push.
+
+  Completed (in checkpoints/final_results/)
+
+  Core ablations — ablation_summary.md
+
+  ┌─────────────────────┬──────────────────────────┬───────────────────────┐
+  │      Ablation       │           What           │        Result         │
+  ├─────────────────────┼──────────────────────────┼───────────────────────┤
+  │ A1 Branch removal   │ PACT-only / Prism-only / │ 84.95 / 88.22 / 88.22 │
+  │                     │  avg / GenStack          │  / 92.42              │
+  ├─────────────────────┼──────────────────────────┼───────────────────────┤
+  │ A2 Routing          │ 1 global → 4 per-split → │ 88.68 → 90.85 → 92.42 │
+  │ granularity         │  23 per-gen              │                       │
+  ├─────────────────────┼──────────────────────────┼───────────────────────┤
+  │ A3 Threshold sweep  │ t = 0.30 … 0.70          │ 91.64 – 92.46 (flat,  │
+  │                     │                          │ optimum @ 0.45)       │
+  ├─────────────────────┼──────────────────────────┼───────────────────────┤
+  │ A4 CV-fold          │ K = 3 / 5 / 10           │ 92.46 / 92.42 / 92.45 │
+  │ sensitivity         │                          │                       │
+  ├─────────────────────┼──────────────────────────┼───────────────────────┤
+  │ A5 Meta-learner     │ LR / RF / GB             │ 91.95 / 92.42 / 92.42 │
+  │ choice              │                          │                       │
+  ├─────────────────────┼──────────────────────────┼───────────────────────┤
+  │ B2                  │ mean held-out vs in-dist │ 89.54% vs 92.42%      │
+  │ Leave-one-gen-out   │                          │ (Δ-2.88 pp)           │
+  └─────────────────────┴──────────────────────────┴───────────────────────┘
+
+  Open-world routing — b1_open_world.md
+
+  KMeans (no generator manifest) → 88.31 – 88.68. Split-aware KMeans → 90.85.
+  Oracle → 92.42. (Now in supply.tex LOGO section.)
+
+  Predicted-gate ablations
+
+  - c1_predicted_gate.md — gate trained on (p_v, b_p) only → top-1 21.91%, soft
+  88.71. Weak.
+  - c1e_clip_gate.md ⭐ — gate trained on CLIP CLS features → top-1 71.01%,
+  top-3 81.29%, soft routing → 92.83 ← this is our headline GenStack number.
+
+  Robustness — PACT-only — robustness_out/pact_robustness_summary.md
+
+  Stratified 5060 samples × 7 conditions (orig, jpeg 90/70/60, blur 1/2/4) × 4
+  splits.
+  Range: jpeg_60 83.68 → orig 88.85. Drives Fig 5 in main.tex §4.6.
+
+  ---
+  NOT completed
+
+  Full GenStack robustness (PACT + Prism + MoE under degradations)
+
+  - Folder genstack_robust_out/ is empty.
+  - Last attempt: 5 Prism jobs on gpu01 → OOM-killer (16 GB × 5 ≈ 80 GB). 2 jobs
+   on gpu02 → 8% in 51 min ≈ 10 hr ETA → unviable.
+  - All processes killed; previous JSONLs deleted.
+  - Plan staged (not executed): drop max_new_tokens=384 → 128, --limit 1500, max
+   3 jobs/node, ~1.5 hr wall.
+
+  Optional Gemini-judge reasoning quality eval
+
+  Depends on full-GenStack run producing rationales. Blocked.
+
+  ---
+  So: 9 ablations done (A1–A5, B2, B1 open-world, C1, C1-E) + PACT-only 
+  robustness sweep (7 conditions) done. Full-GenStack robustness sweep is the 
+  only outstanding item. Want me to relaunch it with the reduced-scope plan?
+
+✻ Sautéed for 46s
+
+※ recap: Goal is finishing GenStack ablations for the IJCB paper. Nine ablations plus PACT-only robustness are done; only the full-GenStack robustness sweep across 7 degradations is outstanding. Next: relaunch it with reduced scope (max_new_tokens=128, limit 1500, 3 jobs/node). (disable recaps in /config)
+
+❯ yes go ahead                                                                  
+
+● Relaunching the full GenStack robustness sweep with the reduced-scope plan.
+
+● Bash(ssh gpu01 "nvidia-smi
+      --query-gpu=index,memory.used,memory.free,utilization.gpu
+      --format=csv,noheader" 2>&1 | head -10)
+  ⎿  0, 650 MiB, 80442 MiB, 18 %
+     1, 650 MiB, 80442 MiB, 17 %
+     2, 6 MiB, 81085 MiB, 0 %
+     … +5 lines (ctrl+o to expand)
+
+● Bash(ssh gpu02 "nvidia-smi
+      --query-gpu=index,memory.used,memory.free,utilization.gpu
+      --format=csv,noheader" 2>&1 | head -10)
+  ⎿  0, 58193 MiB, 22898 MiB, 100 %
+     1, 652 MiB, 80440 MiB, 9 %
+     2, 25072 MiB, 56020 MiB, 47 %
+     … +5 lines (ctrl+o to expand)
+
+● Update(~/xgendet/training/genstack_robust_run.py)
+  ⎿  Added 1 line, removed 1 line
+      201              with torch.no_grad():
+      202                  gen = prism.generate(
+      203                      **inputs,
+      204 -                    max_new_tokens=384,                       
+      204 +                    max_new_tokens=128,                       
+      205                      do_sample=False,
+      206                      temperature=None,
+      207                      top_p=None,
+
+● Bash(ls /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out/ && rm -f
+      /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu…)
+  ⎿  Denied by auto mode classifier ∙ see 
+     https://code.claude.com/docs/s/claude-code-auto-mode
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Directory is already empty. Now launching the 7 conditions across nodes (max 4
+   on gpu01, 3 on gpu02 since gpu01 has more free GPU memory).
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Bash(ssh gpu01 "ls /home/sachin.chaudhary/miniconda3/envs/ 2>/dev/null || ls
+      /home/sachin.chaudhary/anaconda3/envs/ 2>/dev/null")
+  ⎿  Error: Exit code 2
+
+● Bash(ssh gpu01 "which conda; conda env list 2>&1 | head -20")
+  ⎿  which: no conda in (/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin)
+     sh: line 1: conda: command not found
+
+● Bash(ssh gpu01 "bash -lc 'which conda; conda env list' 2>&1 | head -20")  ⎿  Error: Exit code 255
+
+● Bash(ssh gpu01 "bash -lc 'conda env list'" 2>&1 | head -20)
+  ⎿  (No output)
+
+● Bash(ssh gpu01 'bash -lc "conda env list"' 2>&1)
+  ⎿  Error: Exit code 255
+
+● Bash(ssh gpu01 "source ~/.bashrc; conda env list" 2>&1 | head -20)
+  ⎿  (No output)
+
+● Bash(which conda; conda env list 2>&1 | head -20)
+  ⎿  /home/soft/anaconda3/condabin/conda
+     # conda environments:
+     #
+     … +16 lines (ctrl+o to expand)
+
+● Bash(ls /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python;
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c "import
+      transformers, peft, torch; print('OK'…)
+  ⎿  /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+     OK 4.57.6 2.5.1+cu124
+
+● Bash(PY=/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      SCRIPT=/home/sachin.chaudhary/xgendet/training/genstack_robust_run.py…)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(sleep 60; ls -la /home/sachin.chaudhary/xgendet/checkpoints/final_results
+      /genstack_robust_out/ 2>&1)
+  ⎿  Error: Blocked: sleep 60 followed by: ls -la /home/sachin.chaudhary/xgendet
+     /checkpoints/final_results/genstack_robust_out/. To wait for a condition, 
+     use Monitor with an until-loop (e.g. `until <check>; do sleep 2; done`). To
+      wait for a command you started, use run_in_background: true. Do not chain 
+     shorter sleeps to work around this block.
+
+  Read 1 file, listed 1 directory (ctrl+o to expand)
+
+● All 7 jobs launched. Models are loading. Let me monitor.
+
+● Monitor(GenStack robust 7-condition sweep — first writes + errors)
+  ⎿  Monitor started · task bawwxvphs · timeout 600s
+
+● All 7 jobs launched with the reduced-scope plan (1500 samples ×
+  max_new_tokens=128):
+
+  - gpu01: orig, jpeg_90, jpeg_70, jpeg_60 (4 jobs)
+  - gpu02: blur_1, blur_2, blur_4 (3 jobs)
+
+  Models are in the load phase (Prism shard load = ~30-60s). Monitor bawwxvphs
+  will notify on first JSONL writes + any tracebacks/OOM/Killed signatures. I'll
+   report the first throughput numbers as they land and aggregate at the end.
+
+✻ Baked for 5m 23s
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+  ⎿  ⧉ Selected 112 lines from logs/Neurips/implementation/paper/diagram_prompts/02_main_architecture.md in Antigravity
+
+● First inference is happening — gpu02 jobs writing. gpu01 jobs still loading.
+  Monitoring continues.
+
+✻ Worked for 5s
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+  ⎿  ⧉ Selected 112 lines from logs/Neurips/implementation/paper/diagram_prompts/02_main_architecture.md in Antigravity
+● Progress: gpu02 ~7 samples/30s per job (~1.8 hr ETA at this rate). gpu01 still
+   loading.
+
+✻ Sautéed for 4s
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+  ⎿  ⧉ Selected 112 lines from logs/Neurips/implementation/paper/diagram_prompts/02_main_architecture.md in Antigravity
+
+  Read 1 file, listed 1 directory (ctrl+o to expand)
+
+● Bash(ssh gpu01 "ps aux | grep genstack_robust | grep -v grep" 2>&1; echo ---;
+      ssh gpu02 "ps aux | grep genstack_robust | grep -v grep" 2>&1)
+  ⎿  ---
+     sachin.+ 2693090  0.0  0.0   4188  1664 ?        S    00:06   0:00 sh
+     -c cd /home/sachin.chaudhary/xgendet && CUDA_VISIBLE_DEVICES=3 nohup /
+     … +23 lines (ctrl+o to expand)
+
+● gpu01 jobs never started — 0-byte logs, no processes. Re-launching them.
+
+● Bash(ssh gpu01 "nvidia-smi --query-gpu=index,memory.used,memory.free
+      --format=csv,noheader" 2>&1)
+  ⎿  0, 650 MiB, 80442 MiB
+     1, 650 MiB, 80442 MiB
+     2, 6 MiB, 81085 MiB
+     … +5 lines (ctrl+o to expand)
+
+● Bash(PY=/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      SCRIPT=/home/sachin.chaudhary/xgendet/training/genstack_robust_run.py…)
+  ⎿  Error: Exit code 255
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "echo ok; hostname; whoami" 2>&1)
+  ⎿  ok
+     gpu01
+     sachin.chaudhary
+
+● Bash(ssh gpu01 'nohup /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      /home/sachin.chaudhary/xgendet/training/genstack_robust_run.py --condition
+       orig --limit 1…)
+  ⎿  launched-orig CUDA_VISIBLE_DEVICES=2
+
+● Bash(ssh gpu01 "pgrep -af 'genstack_robust' | head -5")
+  ⎿  2354334 sh -c pgrep -af 'genstack_robust' | head -5
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(ssh gpu01 'CUDA_VISIBLE_DEVICES=2
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c "import torch;
+      print(torch.cuda.is_available(), torch.cuda.device_cou…)
+  ⎿  Error: Exit code 255
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "echo \$CUDA_VISIBLE_DEVICES; export CUDA_VISIBLE_DEVICES=2;
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c 'import torch;
+      print(torch.cuda.…)
+  ⎿  Error: Exit code 255
+
+● Write(/tmp/launch_gpu01.sh)
+  ⎿  Wrote 11 lines to ../../../../../../tmp/launch_gpu01.sh
+       2 # Args: GPU CONDITION
+       3 GPU=$1
+       4 COND=$2
+         /genstack_robust_out.chaudhary/xgendet/checkpoints/final_results
+       6 PY=/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+       7 SCRIPT=/home/sachin.chaudhary/xgendet/training/genstack_robust_r
+       8 export CUDA_VISIBLE_DEVICES=$GPU
+       9 nohup $PY $SCRIPT --condition $COND --limit 1500 > $LOG_DIR/${CO
+         ND}.log 2>&1 < /dev/null &
+      10 disown
+     … +4 lines (ctrl+o to expand)
+
+● Bash(chmod +x /tmp/launch_gpu01.sh; ls -la /tmp/launch_gpu01.sh)  ⎿  -rwxr-xr-x 1 sachin.chaudhary hpc 432 Apr 29 00:19 /tmp/launch_gpu01.s
+     h
+
+● Bash(cp /tmp/launch_gpu01.sh /home/sachin.chaudhary/launch_robust.sh; ls -la
+      /home/sachin.chaudhary/launch_robust.sh)
+  ⎿  -rwxr-xr-x 1 sachin.chaudhary hpc 432 Apr 29 00:19 /home/sachin.chaudh
+     ary/launch_robust.sh
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "/home/sachin.chaudhary/launch_robust.sh 2 orig" 2>&1
+      ssh gpu01 "/home/sachin.chaudhary/launch_robust.sh 3 jpeg_90" 2>&1…)
+  ⎿  launched orig on gpu2 pid=2354670
+     launched jpeg_90 on gpu3 pid=2354676
+     launched jpeg_70 on gpu4 pid=2354745
+     launched jpeg_60 on gpu6 pid=2354752
+
+● Bash(ssh gpu01 "ps -p 2354670,2354676,2354745,2354752 -o pid,state,etime,cmd
+      2>&1 | head -10")
+  ⎿      PID S     ELAPSED CMD
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Bash(ssh gpu01 "CUDA_VISIBLE_DEVICES=2
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c 'import torch;
+      print(\"cuda:\", torch.cuda.is_available(), torch.cuda…)
+  ⎿  (No output)
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "CUDA_VISIBLE_DEVICES=2
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c 'import torch;
+      print(torch.cuda.is_available()); print(torch.cuda.dev…)
+  ⎿  Error: Exit code 255
+
+● Bash(ssh gpu01 "echo step1; export CUDA_VISIBLE_DEVICES=2; echo step2;
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python --version; echo
+      step3" 2>&1)
+  ⎿  step1
+     step2
+     Python 3.10.13
+     step3
+
+● Bash(ssh gpu01 'export CUDA_VISIBLE_DEVICES=2;
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c "import torch;
+      print(torch.cuda.is_available(), torch.cuda.de…)
+  ⎿  Error: Exit code 255
+
+● Write(~/cuda_test.py)
+  ⎿  Wrote 5 lines to ../../../../cuda_test.py
+      1 import torch
+      2 print("cuda available:", torch.cuda.is_available())
+      3 print("device count:", torch.cuda.device_count())
+      4 print("current device:", torch.cuda.current_device())
+      5 print("device name:", torch.cuda.get_device_name(0))
+
+● Bash(ssh gpu01 "export CUDA_VISIBLE_DEVICES=2;
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      /home/sachin.chaudhary/cuda_test.py" 2>&1)
+  ⎿  Error: Exit code 255
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "export CUDA_VISIBLE_DEVICES=2 &&
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      /home/sachin.chaudhary/cuda_test.py > /tmp/ct.out 2>&1; echo e…)
+  ⎿  Error: Exit code 255
+
+● Bash(ssh gpu01 "/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      /home/sachin.chaudhary/cuda_test.py" 2>&1)
+  ⎿  Error: Exit code 255
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "free -g | head -3; df -h /tmp /home/sachin.chaudhary 2>&1 |
+      tail -5; uptime")
+  ⎿                 total        used        free      shared  buff/cache
+      available
+     Mem:            1007          54         943           0          15
+     … +8 lines (ctrl+o to expand)
+
+● gpu01 has load avg 62-72 (overloaded). Let me retry launches matching gpu02's
+  exact pattern.
+
+● Bash(ssh gpu01 "CUDA_VISIBLE_DEVICES=2 nohup
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      /home/sachin.chaudhary/xgendet/training/genstack_robust_run.py --c…)  ⎿  launched
+
+● Bash(ssh gpu01 "ps aux | grep genstack_robust | grep -v grep | head")
+  ⎿  (No output)
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c
+      'print(1+1)' > /tmp/x.out 2>&1; echo rc=\$?; cat /tmp/x.out 2>/dev/null")
+  ⎿  rc=0
+     2
+
+● Bash(ssh gpu01 "/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c
+      'import torch' > /tmp/x.out 2>&1; echo rc=\$?; cat /tmp/x.out
+      2>/dev/null")
+  ⎿  Error: Exit code 255
+
+● Bash(ssh gpu01 "nohup /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c
+       'import torch; print(\"torch ok\", torch.__version__)' >
+      /tmp/torch_test.out 2>&1 < /d…)
+  ⎿  started
+
+● Bash(ssh gpu01 "ls -la /tmp/torch_test.out 2>&1; cat /tmp/torch_test.out 2>&1;
+       echo ---ps---; pgrep -af 'import torch' | head")
+  ⎿  -rw-r--r-- 1 sachin.chaudhary hpc 0 Apr 29 00:14 /tmp/torch_test.out
+     ---ps---
+     2356565 sh -c ls -la /tmp/torch_test.out 2>&1; cat /tmp/torch_test.out
+      2>&1; echo ---ps---; pgrep -af 'import torch' | head
+
+● Bash(ssh gpu01 "ulimit -a 2>&1 | head -10; echo ---;
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -c 'print(\"hi\")'
+      2>&1; echo bare-py-rc=\$?")
+  ⎿  real-time non-blocking time  (microseconds, -R) unlimited
+     core file size              (blocks, -c) unlimited
+     data seg size               (kbytes, -d) unlimited
+     … +10 lines (ctrl+o to expand)
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "nohup /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -u
+       -c 'import sys; sys.stdout.write(\"start\\n\"); sys.stdout.flush();
+      import torch; sys.…)
+  ⎿  started pid=2356759
+
+● Bash(ssh gpu01 "ps -p 2356759 -o pid,state,etime,rss,cmd 2>&1; cat
+      /tmp/torch_test.out 2>&1")
+  ⎿      PID S     ELAPSED   RSS CMD
+     start
+     torch ok
+
+● Bash(ssh gpu01 "dmesg -T 2>/dev/null | tail -50 | grep -iE 'oom|killed|memory'
+       | tail -10; echo ---; tail -3 /var/log/messages 2>/dev/null")
+  ⎿  Error: Exit code 1
+     [Sun Apr 26 16:43:10 2026] oom-kill:constraint=CONSTRAINT_NONE,nodemask=(nu
+     ll),cpuset=/,mems_allowed=1,global_oom,task_memcg=/system.slice/pbs.service
+     ,task=ollama,pid=2250792,uid=156900551
+     [Sun Apr 26 16:43:10 2026] Out of memory: Killed process 2250792 (ollama) 
+     total-vm:9436276kB, anon-rss:394544kB, file-rss:0kB, shmem-rss:0kB, 
+     UID:156900551 pgtables:12252kB oom_score_adj:0
+     [Sun Apr 26 16:43:31 2026] oom_reaper: reaped process 1171934 (python3), 
+     now anon-rss:42464kB, file-rss:10484kB, shmem-rss:12168kB
+     ---
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "CUDA_VISIBLE_DEVICES=2 nohup
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -u
+      /home/sachin.chaudhary/xgendet/training/genstack_robust_run.py…)
+  ⎿  Error: Exit code 255
+     started pid=2357038
+
+● Bash(ssh gpu01 "ps -p 2357038 -o pid,state,etime,cmd 2>&1; echo ---log---; cat
+       /tmp/orig_test.log 2>&1 | head -30")
+  ⎿      PID S     ELAPSED CMD
+     ---log---
+
+● Write(~/import_test.py)
+  ⎿  Wrote 20 lines to ../../../../import_test.py
+       2 sys.stdout.write(f"py-start CVD={os.environ.get('CUDA_VISIBLE_DE
+         VICES','?')}\n"); sys.stdout.flush()
+       4 sys.stdout.write("stdlib ok\n"); sys.stdout.flush()
+       5 import torch
+       6 sys.stdout.write(f"torch={torch.__version__} cuda_avail={torch.c
+         dout.flush()able()} ndev={torch.cuda.device_count()}\n"); sys.st
+       7 import torchvision
+         s.stdout.flush()(f"torchvision={torchvision.__version__}\n"); sy
+       9 from PIL import Image, ImageFilter
+      10 sys.stdout.write("PIL ok\n"); sys.stdout.flush()
+     … +16 lines (ctrl+o to expand)
+
+● Bash(ssh gpu01 "CUDA_VISIBLE_DEVICES=2 nohup
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -u
+      /home/sachin.chaudhary/import_test.py > /tmp/imp_test.out 2>&1…)
+  ⎿  started
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "cat /tmp/imp_test.out 2>&1; echo ---; pgrep -af import_test |
+      head")
+  ⎿  py-start CVD=2
+     stdlib ok
+     ---
+     … +2 lines (ctrl+o to expand)
+● Bash(ssh gpu01 "nvidia-smi --query-gpu=index,memory.used,memory.free
+      --format=csv,noheader")
+  ⎿  0, 650 MiB, 80442 MiB
+     1, 650 MiB, 80442 MiB
+     2, 6 MiB, 81085 MiB
+     … +5 lines (ctrl+o to expand)
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "dmesg -T 2>/dev/null | tail -30 | grep -iE 'oom|kill' | tail
+      -10; echo ---; uptime")
+  ⎿  [Sun Apr 26 16:43:10 2026] oom-kill:constraint=CONSTRAINT_NONE,nodemas
+     k=(null),cpuset=/,mems_allowed=1,global_oom,task_memcg=/system.slice/p
+     bs.service,task=ollama,pid=2250792,uid=156900551
+     … +8 lines (ctrl+o to expand)
+
+● Bash(ssh gpu02 "uptime; systemctl is-active pbs 2>&1 | head -3" 2>&1; echo
+      ---; ssh gpu01 "uptime; systemctl is-active pbs 2>&1 | head -3" 2>&1)
+  ⎿   00:16:46 up 58 days,  8:14,  0 users,  load average: 104.02, 102.97,
+     92.23
+     active
+     … +4 lines (ctrl+o to expand)
+
+● Bash(ssh gpu02 "nvidia-smi
+      --query-gpu=index,memory.used,memory.free,utilization.gpu
+      --format=csv,noheader")
+  ⎿  0, 58193 MiB, 22898 MiB, 100 %
+     1, 21681 MiB, 59410 MiB, 69 %
+     2, 46101 MiB, 34990 MiB, 100 %
+     … +5 lines (ctrl+o to expand)
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(cat ~/.ssh/config 2>/dev/null | grep -i host | head -20; echo ---; for h
+      in gpu03 gpu04 gpu05 dgx01 dgx02 dgx03; do timeout 5 ssh -o
+      ConnectTimeout=3 $h "hostna…)
+  ⎿  Error: Exit code 1
+     ---
+     sss_ssh_knownhostsproxy: Could not resolve hostname gpu03
+     kex_exchange_identification: Connection closed by remote host
+     Connection closed by UNKNOWN port 65535
+     (eval):1: == not found
+
+● Bash(for h in gpu03 gpu04 gpu05 dgx01 cn01 cn02; do timeout 5 ssh -o
+      ConnectTimeout=3 $h "hostname" 2>&1 | head -2; echo "---"; done)
+  ⎿  sss_ssh_knownhostsproxy: Could not resolve hostname gpu03
+     kex_exchange_identification: Connection closed by remote host
+     ---
+     … +15 lines (ctrl+o to expand)
+
+● Bash(hostname; nvidia-smi
+      --query-gpu=index,memory.used,memory.free,utilization.gpu
+      --format=csv,noheader 2>&1 | head -10)
+  ⎿  mgmt01
+     NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA
+     driver. Make sure that the latest NVIDIA driver is installed and runni
+     ng.
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu01 "CUDA_VISIBLE_DEVICES=2 nohup
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -u
+      /home/sachin.chaudhary/import_test.py > /tmp/imp_test2.out 2>&1…)
+  ⎿  started 0
+
+● Bash(ssh gpu01 "sleep 30; cat /tmp/imp_test2.out; echo ---; pgrep -af
+      import_test | head; echo ---; dmesg -T 2>/dev/null | tail -5")
+  ⎿  Error: Exit code 255
+
+● Bash(ssh gpu01 "cat /tmp/imp_test2.out")
+  ⎿  py-start CVD=2
+     stdlib ok
+
+● gpu01 is unusable (python dies on import torch due to load avg 80+). gpu02 has
+   4 functional GPUs but GPU 0 is taken by another user — only 3 slots
+  available, all in use. I'll serialize the 4 pending conditions through gpu02
+  as slots free up.
+
+● Write(~/queue_robust.sh)
+  ⎿  Wrote 39 lines to ../../../../queue_robust.sh
+       2 # Watches gpu02 GPU slots; launches pending conditions as they f
+         ree up.
+       3 # Pending conditions: orig jpeg_90 jpeg_70 jpeg_60
+       5 # Slots: GPU 1, 2, 3 on gpu02
+       6 set -u
+       7 PY=/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+         un.pyT=/home/sachin.chaudhary/xgendet/training/genstack_robust_r
+       9 LOG_DIR=/home/sachin.chaudhary/xgendet/checkpoints/final_results
+         /genstack_robust_out
+      10 QUEUE=(orig jpeg_90 jpeg_70 jpeg_60)
+     … +35 lines (ctrl+o to expand)
+
+● Bash(chmod +x /home/sachin.chaudhary/queue_robust.sh
+      ssh gpu02 "nohup /home/sachin.chaudhary/queue_robust.sh >
+      /home/sachin.chaudhary/xgendet/checkpoints/final_resul…)
+  ⎿  queue-launched pid=2702989
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(ssh gpu02 "ps -p 2702989 -o pid,state,etime,cmd 2>&1 | head -3")
+  ⎿      PID S     ELAPSED CMD
+     2702989 S       00:05 /bin/bash /home/sachin.chaudhary/queue_robust.sh
+● Bash(qstat -q 2>&1 | head -20; echo ---; pbsnodes gpu01 2>&1 | head -30)
+  ⎿  server: mgmt01
+
+     Queue            Memory CPU Time Walltime Node   Run   Que   Lm  State
+     … +41 lines (ctrl+o to expand)
+
+● Bash(pbsnodes gpu02 2>&1 | grep -E
+      "ngpus|ncpus|state|resources_assigned|resources_available" | head -15)
+  ⎿       state = job-busy
+          resources_available.arch = linux
+          resources_available.container_engine = docker
+     … +12 lines (ctrl+o to expand)
+
+● Monitor event: "GenStack robust 7-condition sweep — first writes + errors"
+
+● Bash(qstat -u sachin.chaudhary 2>&1 | head -20)
+  ⎿  mgmt01:
+                                                                 Req'd  Req
+     'd   Elap
+     … +10 lines (ctrl+o to expand)
+
+● Monitor(GenStack robust sweep — JSONL progress + queue events + errors)
+  ⎿  Monitor started · task bqklwu3ab · timeout 3600s
+
+● Status update:
+
+  - gpu01 is unusable: load avg 80+, python processes die at import torch.
+  Likely strict cgroup enforcement (99/104 CPUs assigned to other PBS jobs).
+  - gpu02 has 3 working slots (GPUs 1, 2, 3); 4–7 are zombie-occupied; 0 is
+  taken by another user.
+  - Currently running on gpu02: blur_1 (130 samples), blur_2 (119), blur_4 (119)
+   → ~7 samples/30s ≈ 1.8 hr to finish 1500 each.
+  - Queue manager (queue_robust.sh) is now running on gpu02 — it watches the
+  JSONL counts, and when a blur job hits 1500 lines it auto-launches the next
+  pending condition (orig → jpeg_90 → jpeg_70 → jpeg_60) on the freed GPU.
+
+  Revised wall-time forecast:
+  - ~95 more min for the 3 blur jobs to finish.
+  - Then ~108 min for orig/jpeg_90/jpeg_70 in parallel.
+  - Then ~108 min for jpeg_60 alone.
+  - Total ≈ 5 hours.
+
+  Monitor bqklwu3ab (1-hour timeout, 2-min poll) is watching. I'll re-arm if it
+  expires; report when conditions complete or anything errors. Want me to (a)
+  cap each condition at fewer samples to finish in ~1 hr, or (b) wait this out
+  as-is?
+
+✻ Cogitated for 8m 30s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — gpu02 blur jobs continuing at expected rate (~7
+  samples/30s).
+
+✻ Churned for 3s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~30 samples in 2 min per slot, on track.
+
+✻ Brewed for 4s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress.
+
+✻ Sautéed for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~14% done.
+
+✻ Churned for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~16% done.
+
+✻ Sautéed for 1s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~18% done.
+✻ Cooked for 3s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~19% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~21% done.
+
+✻ Churned for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~22% done.
+
+✻ Brewed for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~24% done.
+
+✻ Worked for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~25% done. blur_1 lagging slightly (~10/min slower than
+  blur_2/4).
+
+✻ Worked for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~27% done.
+
+✻ Brewed for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~29% done.
+
+✻ Cogitated for 4s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~30% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~32% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~33% done.
+✻ Crunched for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~36% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~38% done.
+
+✻ Crunched for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~40% done.
+
+✻ Cooked for 1s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~41% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~43% done.
+
+✻ Cooked for 1s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~45% done.
+
+✻ Sautéed for 1s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~47% done.
+
+✻ Brewed for 1s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~48% done.
+
+✻ Crunched for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~50% done.
+
+✻ Churned for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~52% done.
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~54% done.
+
+✻ Crunched for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~56% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~57% done.
+
+✻ Churned for 1s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Routine progress — ~59% done.
+
+✻ Brewed for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue events +
+errors"
+
+● Bash(cd /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out && wc -l *.jsonl 2>/dev/null; echo ---; ssh gpu02 "ps aux | grep -E
+       'genstack_ro…)
+  ⎿     908 blur_1.jsonl
+        948 blur_2.jsonl
+        944 blur_4.jsonl
+     … +3 lines (ctrl+o to expand)
+
+● Monitor(GenStack robust sweep — JSONL progress + queue + errors (5min poll))
+  ⎿  Monitor started · task bhsfdzleh · timeout 3600s
+
+● Monitor re-armed (5-min poll). Progress at ~60% on blur conditions; first JSON
+   should hit 1500 in ~35 min, queue manager will then auto-launch first pending
+   condition (orig).
+
+✻ Cooked for 24s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress.
+
+✻ Cooked for 1s
+
+※ recap: Goal: full GenStack robustness sweep across 7 conditions. Currently 3 blur conditions at ~62% on gpu02; queue manager will auto-launch the 4 pending JPEG/orig conditions as slots free. Next: wait for first slot to free (~30 min) and verify auto-launch. (disable recaps in /config)
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress — ~67% done.
+
+✻ Cooked for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress — ~73% done.
+
+✻ Crunched for 2s
+※ recap: GenStack 7-condition robustness sweep is at ~73% — three blur jobs running on gpu02, four pending conditions (orig, jpeg 90/70/60) auto-queued to launch as slots free up. Next: wait for blur_1 to hit 1500 lines so the queue manager fires orig.
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress — ~78% done.
+
+✻ Worked for 4s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress — ~83% done.
+
+✻ Churned for 2s
+
+※ recap: Running the full GenStack robustness sweep on gpu02 — blur_1/2/4 are at ~83% (1238/1290/1271 of 1500 samples). Next: queue manager will auto-launch orig, jpeg_90, jpeg_70 as each blur slot frees up.
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress — ~90% done.
+
+✻ Sautéed for 2s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress — ~94%. blur_2 will hit 1500 first within ~5 min, triggering
+  queue.
+
+✻ Churned for 2s
+
+※ recap: Running full GenStack robustness sweep on gpu02 — 3 blur conditions at ~94% (blur_2 hits 1500 in ~5 min), then queue manager auto-launches orig, jpeg_90, jpeg_70, jpeg_60 on freed GPUs. Next: wait for blur_2 to finish and confirm queue handoff.
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● blur_2 and blur_4 done. Queue auto-launched orig (slot 2) and jpeg_90 (slot
+  3). blur_1 close to finishing → will trigger jpeg_70.
+
+✻ Sautéed for 5s
+
+● Background command "Launch all 7 robustness conditions" completed (exit code
+0)
+
+● Original launcher background task exited cleanly (just the SSH wrappers
+  ending).
+
+✻ Sautéed for 3s
+
+※ recap: Goal: full GenStack robustness sweep, 7 conditions × 1500 samples. blur_2 and blur_4 finished at 1500; queue auto-launched orig and jpeg_90 on the freed slots. Next: wait for blur_1 to hit 1500 so jpeg_70 launches.
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● All 3 blur conditions complete (1500 each). Queue launched orig + jpeg_90 +
+  jpeg_70 — 3 of 4 pending now running. jpeg_60 will launch when one finishes
+  (~95 min).
+
+✻ Brewed for 4s
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min
+poll)"
+
+● Routine progress. Let me prep the aggregation script while we wait.
+
+● Write(~/xgendet/training/aggregate_genstack_robust.py)
+  ⎿  Wrote 133 lines to ../../../training/aggregate_genstack_robust.py
+       2 import jsone GenStack robustness JSONLs into a summary table."""
+       3 from pathlib import Path
+       4 from collections import defaultdict
+       5 
+       6 OUT_DIR = Path(
+         nstack_robust_out"chaudhary/xgendet/checkpoints/final_results/ge
+       8 )
+       9 CONDITIONS = [
+      10     "orig", "jpeg_90", "jpeg_70", "jpeg_60", "blur_1", "blur_2",
+          "blur_4"
+     … +136 lines (ctrl+o to expand)
+● Bash(/home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python
+      /home/sachin.chaudhary/xgendet/training/aggregate_genstack_robust.py 2>&1
+      | head -80)
+  ⎿  Wrote /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstac
+     k_robust_out/genstack_robust_summary.json
+     Wrote /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstac
+     … +25 lines (ctrl+o to expand)
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min poll)"
+
+● Monitor event: "GenStack robust sweep — JSONL progress + queue + errors (5min poll)"
+
+● Critical issue spotted: Prism outputs all show b_p = -1 (no <answer> tag
+  matched). Likely because I reduced max_new_tokens from 384 → 128 to speed
+  things up — the model probably can't fit
+  <fast>...<reasoning>...<conclusion>...<answer> in 128 tokens.
+
+  Let me test this quickly while the sweep continues.
+
+● Write(~/test_prism_tokens.py)
+  ⎿  Wrote 106 lines to ../../../../test_prism_tokens.py
+         384."""k test: does 128 tokens reach <answer>? Try both 128 and 
+       2 import sys, json, re
+       3 from pathlib import Path
+       4 sys.path.insert(0, "/home/sachin.chaudhary/xgendet")
+       5 
+       6 import torch
+       7 from PIL import Image
+       8 import torchvision.transforms as T
+       9 
+      10 CLIP_MEAN = [0.48145466, 0.4578275, 0.40821073]
+     … +125 lines (ctrl+o to expand)
+
+● Bash(ssh gpu02 "CUDA_VISIBLE_DEVICES=4 nohup
+      /home/sachin.chaudhary/.conda/envs/Qwen2.5/bin/python -u
+      /home/sachin.chaudhary/test_prism_tokens.py > /home/sachin.chau…)
+  ⎿  started
+
+● Bash(sleep 60; tail -40 /home/sachin.chaudhary/test_prism_tokens.out 2>&1)
+  ⎿  Error: Blocked: sleep 60 followed by: tail -40 
+     /home/sachin.chaudhary/test_prism_tokens.out. To wait for a condition, use 
+     Monitor with an until-loop (e.g. `until <check>; do sleep 2; done`). To 
+     wait for a command you started, use run_in_background: true. Do not chain 
+     shorter sleeps to work around this block.
+
+● Bash(until [ -s /home/sachin.chaudhary/test_prism_tokens.out ] && grep -qE
+      'id=|Error|Traceback|out of memory'
+      /home/sachin.chaudhary/test_prism_tokens.out 2>/dev/nu…)
+  ⎿  Running in the background (↓ to manage)
+
+✻ Cogitated for 1h 23m 18s
+
+● Background command "Wait for test output" completed (exit code 0)
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(cd /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out
+      for f in blur_1.jsonl orig.jsonl; do…)
+  ⎿  === blur_1.jsonl ===
+       n=1500, b_p distribution: {-1: 1499, 1: 1}
+       first 3 records keys: ['id', 'split', 'generator', 'label', 'p_v', '
+     … +5 lines (ctrl+o to expand)
+
+● Bash(wc -l *.jsonl 2>&1; echo ---; date; ssh gpu02 "ps aux | grep
+      genstack_robust | grep -v grep | wc -l")
+  ⎿     1500 blur_1.jsonl
+        1500 blur_2.jsonl
+        1500 blur_4.jsonl
+     … +8 lines (ctrl+o to expand)
+
+● Bash(cd /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out
+      for f in *.jsonl; do…)
+  ⎿  blur_1.jsonl n=1500: bp={-1: 1499, 1: 1}
+     blur_2.jsonl n=1500: bp={-1: 1500}
+     blur_4.jsonl n=1500: bp={-1: 1499, 1: 1}
+     … +4 lines (ctrl+o to expand)
+
+● Critical bug found: Prism b_p is -1 (no <answer> tag) for ~99.97% of samples
+  across all conditions. The max_new_tokens=128 cap I set during troubleshooting
+   is too tight — the model can't fit
+  <fast>...<reasoning>...<conclusion>...<answer> in 128 tokens, so we never see
+  the verdict.
+
+  Current state:
+  - 6 of 7 conditions at 1500 samples (PACT data is valid; Prism data is
+  unusable)
+  - jpeg_60 still running at 122/1500 — also wasted Prism work
+
+  Options:
+
+  ┌────────┬───────────────────────────────────┬──────┬─────────────────────┐
+  │ Option │              Action               │ Time │      Trade-off      │
+  ├────────┼───────────────────────────────────┼──────┼─────────────────────┤
+  │        │ Kill jpeg_60 now, restart all 7   │ ~5   │ Lose 122 jpeg_60    │
+  │ A      │ with max_new_tokens=384 + log     │ hr   │ samples (worthless  │
+  │        │ rationales                        │      │ anyway)             │
+  ├────────┼───────────────────────────────────┼──────┼─────────────────────┤
+  │ B      │ Let jpeg_60 finish (~55 min),     │ ~6   │ No data loss but    │
+  │        │ then restart all 7                │ hr   │ wastes ~55 min      │
+  ├────────┼───────────────────────────────────┼──────┼─────────────────────┤
+  │        │ Stop here, keep PACT-only         │      │ No "full GenStack"  │
+  │ C      │ robustness for paper (already in  │ 0    │ robustness story    │
+  │        │ §4.6)                             │      │                     │
+  └────────┴───────────────────────────────────┴──────┴─────────────────────┘
+
+  Recommending A — the in-flight jpeg_60 is producing data with b_p=-1 for every
+   sample, so killing it loses nothing real. Want me to proceed?
+
+✻ Sautéed for 1m 59s
+
+※ recap: Goal is the full GenStack robustness sweep across 7 conditions. The Prism step produced no valid answers because max_new_tokens=128 is too short, so I need your OK to kill the running jpeg_60 job and restart all 7 with 384.
+
+❯ is it done? Also I'm sharing with you the path of the recent zip file and in  
+  this I want to do several changes:                                            
+  - For slide 2 you need to increase the slide text size a bit.                 
+  - For slide 2 you need to write down the central hypothesis slide below in    
+  full length not in half length.                                               
+  - Similarly for slide 7 you need to slightly reduce the text such that it     
+  fits well.                                                                    
+  - Also for slide 8 make it fit well.                                          
+  Similarly just give me the updated zip file by doing all these changes. Don't 
+   give me the zip file; share with me the absolute path of main.tex after      
+  doing all these changes. /home/sachin.chaudhary/GenStack__Dual_Branch_Mixture 
+  _of_Experts_for_Generalizable_Face_Forgery_Detection.zip   this is zip path   
+
+● Bash(ls -la /home/sachin.chaudhary/GenStack__Dual_Branch_Mixture_of_Experts_fo
+      r_Generalizable_Face_Forgery_Detection.zip; mkdir -p
+      /tmp/genstack_pres_v2; cd /tmp/gen…)
+  ⎿  -rw-r--r-- 1 sachin.chaudhary hpc 5071580 Apr 29 03:54 /home/sachin.ch
+     audhary/GenStack__Dual_Branch_Mixture_of_Experts_for_Generalizable_Fac
+     e_Forgery_Detection.zip
+     … +16 lines (ctrl+o to expand)
+  ⎿  Shell cwd was reset to /home/sachin.chaudhary
+
+  Read 1 file (ctrl+o to expand)
+● Let me see the rendered PDF to understand layout issues precisely.
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I can see all three issues clearly. Let me apply the fixes.
+
+● Update(/tmp/genstack_pres_v2/main.tex)
+  ⎿  Added 8 lines, removed 4 lines
+      106  % Slide 2: Outline
+      107  %=============================================================
+           ================
+      108  \begin{frame}{Outline}
+      109 +  {\scriptsize                                                
+      110    \begin{columns}[T]
+      111      \column{0.5\textwidth}
+      112      \begin{enumerate}
+     ...
+      127        \item Conclusion \& takeaways
+      128      \end{enumerate}
+      129    \end{columns}
+      129 -  \vspace{0.3cm}                                              
+      130 -  \begin{block}{Headline}                                     
+      131 -    \textsc{GenStack} reaches $\mathbf{92.83\%}$ on HydraFake,
+          - surpassing Veritas (90.70\%) by $+2.13$ pp --- with no reinfo
+          -rcement-learning stage and \textbf{$<\!1$M extra trainable par
+          -ameters} on top of two frozen base detectors.                 
+      132 -  \end{block}                                                 
+      130 +  }                                                           
+      131 +  \vspace{0.35cm}                                             
+      132 +  \begin{alertblock}{Central hypothesis \& headline}          
+      133 +    {\scriptsize                                              
+      134 +    Single-paradigm detectors fail in \emph{structurally compl
+          +ementary} ways: a CLIP-based discriminator catches generators 
+          +an MLLM reasoner misses, and vice versa --- but the right way 
+          +to combine them is \textbf{generator-dependent}. \textsc{GenSt
+          +ack} couples the two frozen bases with a per-generator Gradien
+          +t-Boosting MoE, routed by a learned soft gate over CLIP CLS fe
+          +atures.\\[0.15cm]                                             
+      135 +    \textbf{Result.}\ $\mathbf{92.83\%}$ sample-weighted accur
+          +acy on HydraFake (23 generators, 4 splits) --- $+2.13$ pp over
+          + Veritas (90.70\%), with no RL stage and $<\!1$M extra trainab
+          +le parameters on top of two frozen base detectors.}           
+      136 +  \end{alertblock}                                            
+      137  \end{frame}
+      138  
+      139  %=============================================================
+           ================
+
+● Update(/tmp/genstack_pres_v2/main.tex)
+  ⎿  Added 12 lines, removed 14 lines
+      252    \begin{columns}[T]
+      253      \column{0.36\textwidth}
+      254      \begin{block}{Three complementary views}
+      255 -      \footnotesize                                           
+      255 +      \scriptsize                                             
+      256        \begin{itemize}
+      257          \item $\mathbf{x}_{rgb}$: RGB at $448\times 448$.
+      258 -        \item $\mathbf{x}_{fft}$: log-magnitude FFT spectrum, 
+          -JET-colormap.                                                 
+      258 +        \item $\mathbf{x}_{fft}$: log-magnitude FFT, JET-color
+          +map.                                                          
+      259          \item $\mathbf{x}_{noise}$: high-pass residual $\mathb
+           f{x}\!-\!\mathrm{GaussianBlur}_{\sigma=3}(\mathbf{x})$.
+      260        \end{itemize}
+      261      \end{block}
+      262      \begin{tabular}{@{}c@{\,}c@{\,}c@{}}
+      263 -      \includegraphics[width=2.0cm]{view_rgb.png} &           
+      264 -      \includegraphics[width=2.0cm]{view_fft.png} &           
+      265 -      \includegraphics[width=2.0cm]{view_noise.png} \\        
+      263 +      \includegraphics[width=1.7cm]{view_rgb.png} &           
+      264 +      \includegraphics[width=1.7cm]{view_fft.png} &           
+      265 +      \includegraphics[width=1.7cm]{view_noise.png} \\        
+      266        \tiny RGB & \tiny FFT & \tiny Residual
+      267      \end{tabular}
+      268      \column{0.64\textwidth}
+      269      \begin{block}{Multi-image prompt + structured rationale}
+      270        \scriptsize
+      271        \texttt{<image><image><image> Determine the authenticity
+            of this face using the original image and forensic maps.}
+      272 -      \vspace{0.1cm}                                          
+      272 +      \vspace{0.05cm}                                         
+      273        \begin{itemize}
+      274 -        \item \textbf{InternVL3-8B + LoRA} ($r{=}128$, $\alpha
+          -{=}256$) --- vision encoder \emph{unfrozen} so it adapts to FF
+          -T / noise statistics.                                         
+      275 -        \item Trained on \texttt{prism\_sft\_36k} with AdamW, 
+          -lr $5\!\times\!10^{-5}$, 3 epochs, 4 GPUs.                    
+      274 +        \item \textbf{InternVL3-8B + LoRA} ($r{=}128$, $\alpha
+          +{=}256$); vision encoder \emph{unfrozen} to adapt to FFT/noise
+          + statistics.                                                  
+      275 +        \item Trained on \texttt{prism\_sft\_36k}, AdamW, lr $
+          +5\!\times\!10^{-5}$, 3 epochs, 4 GPUs.                        
+      276        \end{itemize}
+      277 -      \scriptsize                                             
+      278 -      \texttt{<plan>} Identify regions to inspect \texttt{</pl
+          -an>}\\                                                        
+      279 -      \texttt{<examine region="...">} Cite spectral / residual
+          - evidence \texttt{</examine>}\\                               
+      280 -      \texttt{<conclude>} Synthesize the evidence \texttt{</co
+          -nclude>}\\                                                    
+      281 -      \texttt{<answer> real / fake </answer>}                 
+      277 +      \vspace{0.05cm}                                         
+      278 +      \texttt{<plan>} regions to inspect \texttt{</plan>} $\to
+          +$ \texttt{<examine>} spectral/residual evidence \texttt{</exam
+          +ine>} $\to$ \texttt{<conclude>}\,\ldots\,\texttt{</conclude>} 
+          +$\to$ \texttt{<answer>real/fake</answer>}                     
+      279      \end{block}
+      280      \begin{alertblock}{Standalone result}
+      284 -      \prism{} alone: \textbf{88.22\%} sample-weighted. The mu
+          -lti-view prompt + structured reasoning together unlock a $+3.2
+          -7$ pp gain over a single-RGB MLLM baseline.                   
+      281 +      \scriptsize                                             
+      282 +      \prism{} alone: \textbf{88.22\%} sample-weighted; multi-
+          +view + structured reasoning yield $+3.27$ pp over a single-RGB
+          + MLLM baseline.                                               
+      283      \end{alertblock}
+      284    \end{columns}
+      285  \end{frame}
+
+● Update(/tmp/genstack_pres_v2/main.tex)
+  ⎿  Added 15 lines, removed 12 lines
+      291    \begin{columns}[T]
+      292      \column{0.50\textwidth}
+      293      \begin{block}{Fusion problem}
+      294 -      Each input image is reduced to a 2-d signal $(p_v, b_p)$
+          -, but \textbf{the right rule depends on the generator}:       
+      294 +      \scriptsize                                             
+      295 +      Each input is reduced to a 2-d signal $(p_v, b_p)$, but 
+          +\textbf{the right rule depends on the generator}:             
+      296        \begin{itemize}
+      296 -        \item For some generators \prism{} dominates;         
+      297 -        \item For others \vfive{} dominates;                  
+      298 -        \item For a hard subset (e.g.\ ICLight) it is precisel
+          -y the \emph{disagreement} that carries signal --- non-monotone
+          - in $p_v$.                                                    
+      297 +        \item For some generators \prism{} dominates; for othe
+          +rs \vfive{} dominates.                                        
+      298 +        \item On hard cases (e.g.\ ICLight) it is the \emph{di
+          +sagreement} that carries signal --- non-monotone in $p_v$.    
+      299        \end{itemize}
+      300      \end{block}
+      301      \begin{block}{Architecture}
+      302 +      \scriptsize                                             
+      303        \begin{itemize}
+      304          \item \textbf{23 Gradient-Boosting experts} $f_g{:}\,\
+           mathbb{R}^2\!\to\![0,1]$ --- one per HydraFake generator.
+      304 -        \item \textbf{Learned soft gate} $\pi(\mathbf{x})$: mu
+          -ltinomial logistic regression on $\ell_2$-normalised CLIP CLS 
+          -embeddings (\emph{free} --- already extracted by \vfive{}).   
+      305 +        \item \textbf{Learned soft gate} $\pi(\mathbf{x})$: mu
+          +ltinomial LR on $\ell_2$-normalised CLIP CLS (\emph{free} --- 
+          +already from \vfive{}).                                       
+      306          \item Soft mixture, no hard routing.
+      307        \end{itemize}
+      308      \end{block}
+      309      \column{0.50\textwidth}
+      310      \begin{exampleblock}{Eq.~(1) --- soft mixture prediction}
+      311 +      \scriptsize                                             
+      312        \[
+      311 -        \boxed{\hat{y}(\mathbf{x}) \;=\; \sum_{g\in\mathcal{G}
+          -}\,\pi_g(\mathbf{x})\,f_g\!\bigl(p_v(\mathbf{x}),\,b_p(\mathbf
+          -{x})\bigr)}                                                   
+      313 +        \hat{y}(\mathbf{x}) \;=\; \sum_{g\in\mathcal{G}}\,\pi_
+          +g(\mathbf{x})\,f_g\!\bigl(p_v(\mathbf{x}),\,b_p(\mathbf{x})\bi
+          +gr)                                                           
+      314        \]
+      315      \end{exampleblock}
+      314 -    \begin{block}{Why soft, why CLIP-CLS-fed}                 
+      315 -      \footnotesize                                           
+      316 +    \begin{block}{Why soft \& CLIP-CLS-fed}                   
+      317 +      \scriptsize                                             
+      318        \begin{itemize}
+      317 -        \item Soft mixing ensembles related experts when the g
+          -ate is uncertain (e.g.\ StarGAN-v2 $\leftrightarrow$ StyleGAN)
+          -.                                                             
+      318 -        \item Gate top-1 = $71.0\%$, top-3 = $81.3\%$ on the 2
+          -3-way generator-id task (chance $4.35\%$).                    
+      319 -        \item A $(p_v,\,b_p)$-only gate collapses to $88.65\%$
+          -; CLIP CLS lifts to $\mathbf{92.83\%}$.                       
+      319 +        \item Soft mixing ensembles related experts when the g
+          +ate is uncertain (StarGAN-v2 $\leftrightarrow$ StyleGAN).     
+      320 +        \item Gate top-1 $=71.0\%$, top-3 $=81.3\%$ (23-way; c
+          +hance $4.35\%$).                                              
+      321 +        \item $(p_v,b_p)$-only gate $\to 88.65\%$; CLIP CLS $\
+          +to \mathbf{92.83\%}$.                                         
+      322        \end{itemize}
+      323      \end{block}
+      324      \begin{alertblock}{Cost}
+      323 -      Total meta-learner overhead: $<\!100$K params, $<\!0.1$ 
+          -ms/image at inference, $<\!1$ min to train from cached base pr
+          -edictions.                                                    
+      325 +      \scriptsize                                             
+      326 +      $<\!100$K params, $<\!0.1$ ms/image, $<\!1$ min to train
+          +.                                                             
+      327      \end{alertblock}
+      328    \end{columns}
+      329  \end{frame}
+
+● Now let me compile to verify it renders correctly.
+
+● Bash(cd /tmp/genstack_pres_v2 && pdflatex -interaction=nonstopmode
+      -halt-on-error main.tex > /tmp/build.log 2>&1; tail -25 /tmp/build.log)
+  ⎿  xmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/local/texliv
+     e/2025/te
+     xmf-dist/fonts/type1/public/amsfonts/cmextra/cmex7.pfb></usr/local/tex
+     … +24 lines (ctrl+o to expand)
+  ⎿  Shell cwd was reset to /home/sachin.chaudhary
+
+  Read 1 file (ctrl+o to expand)
+
+● All three slides render correctly:
+  - Slide 2: Text size up; the bottom block is now a full-width "Central
+  hypothesis & headline" with substantial content (no longer half-length).
+  - Slide 7: Standalone result compact, no overflow.
+  - Slide 8: Cost block fits cleanly inside the frame.
+
+  Let me move the updated tex to a stable location.
+
+● Bash(cp /tmp/genstack_pres_v2/main.tex
+      /home/sachin.chaudhary/GenStack_Presentation_v2_main.tex; ls -la
+      /home/sachin.chaudhary/GenStack_Presentation_v2_main.tex)
+  ⎿  -rw-r--r-- 1 sachin.chaudhary hpc 24245 Apr 29 03:58 /home/sachin.chau
+     dhary/GenStack_Presentation_v2_main.tex
+
+● Updated main.tex absolute path:
+
+  /home/sachin.chaudhary/GenStack_Presentation_v2_main.tex
+
+  Changes applied:
+  - Slide 2: text size bumped from \tiny → \scriptsize; replaced "Headline"
+  block with a full-width "Central hypothesis & headline" alertblock containing
+  both the central hypothesis and the headline result.
+  - Slide 7: image widths trimmed (2.0 → 1.7 cm); Standalone-result block
+  compacted to one sentence with \scriptsize; reasoning tags collapsed onto a
+  single arrow chain.
+  - Slide 8: column blocks switched to \scriptsize; Cost block reduced to a
+  single line so it fits within the frame.
+
+  Compiled cleanly to 12 pages.
+
+  ---
+  On the GenStack robustness sweep: not done. Six of seven JSONLs are at
+  1500/1500, jpeg_60 still running. But there's a critical issue: b_p = -1 on
+  ~99.97% of records — max_new_tokens=128 was too tight for Prism to reach
+  <answer>. PACT (p_v) values are valid; Prism evaluations are unusable. I
+  described three options earlier (kill+restart with 384 tokens, wait+restart,
+  or stop and keep PACT-only robustness already in §4.6). Awaiting your call on
+  which to take.
+
+✻ Churned for 3m 31s
+
+※ recap: Goal: full GenStack robustness for the IJCB paper. The 1500-sample × 7-condition sweep is producing valid PACT data but Prism `b_p` is broken because `max_new_tokens=128` was too low. Next action: pick whether to kill jpeg_60 now and restart all 7 with 384 tokens (~5 hr), or keep PACT-only.
+
+❯ hi                                                                            
+
+● Hi. Where do you want to pick up?
+
+  Quick state of play:
+
+  - Slides: updated main.tex is at
+  /home/sachin.chaudhary/GenStack_Presentation_v2_main.tex (slides 2/7/8 fixed,
+  compiles clean).
+  - GenStack robustness sweep: stuck. 6/7 conditions at 1500/1500 but Prism b_p
+  is -1 on ~99.97% of samples (the max_new_tokens=128 cap I set is too tight for
+   <answer> to emit). PACT data is valid; Prism data is unusable.
+
+  For the sweep, the call you owe me is one of:
+  - A — kill jpeg_60 + restart all 7 with max_new_tokens=384 (~5 hr)
+  - B — let jpeg_60 finish first (~55 min) then restart (~6 hr total)
+  - C — stop, keep PACT-only robustness already in the paper
+
+  Which way?
+
+✻ Crunched for 16s
+
+❯ - B — let jpeg_60 finish first (~55 min) then restart (~6 hr total)           
+
+● Bash(cd /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out && wc -l *.jsonl 2>&1; echo ---; ssh gpu02 "ps aux | grep -E
+      'genstack_robust|qu…)
+  ⎿     1500 blur_1.jsonl
+        1500 blur_2.jsonl
+        1500 blur_4.jsonl
+     … +9 lines (ctrl+o to expand)
+
+● jpeg_60 already finished. Let me check gpu01 — maybe it's lighter now and we
+  can spread the rerun across more GPUs.
+
+● Bash(ssh gpu01 "uptime; nvidia-smi
+      --query-gpu=index,memory.free,utilization.gpu --format=csv,noheader" 2>&1;
+       echo ---; ssh gpu02 "uptime; nvidia-smi --query-gpu=ind…)
+  ⎿   10:48:24 up 58 days, 18:51,  0 users,  load average: 13.34, 13.36, 13
+     .37
+     0, 81090 MiB, 0 %
+     … +18 lines (ctrl+o to expand)
+
+● gpu01 is lighter now (load 13 vs 80 earlier; 6 GPUs free). I can run all 7 in
+  parallel — should finish in ~5 hr.
+
+● Update(~/xgendet/training/genstack_robust_run.py)
+  ⎿  Added 1 line, removed 1 line
+      201              with torch.no_grad():
+      202                  gen = prism.generate(
+      203                      **inputs,
+      204 -                    max_new_tokens=128,                       
+      204 +                    max_new_tokens=384,                       
+      205                      do_sample=False,
+      206                      temperature=None,
+      207                      top_p=None,
+
+● Bash(cd /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out
+      mkdir -p backup_128tok…)
+  ⎿  renamed 'blur_1.jsonl' -> 'backup_128tok/blur_1.jsonl'
+     renamed 'blur_2.jsonl' -> 'backup_128tok/blur_2.jsonl'
+     renamed 'blur_4.jsonl' -> 'backup_128tok/blur_4.jsonl'
+     … +15 lines (ctrl+o to expand)
+● Bash(# Launch 4 on gpu01, 3 on gpu02
+      for pair in "0:orig" "1:jpeg_90" "2:jpeg_70" "3:jpeg_60"; do…)
+  ⎿  launched orig on gpu0 pid=2532413
+     launched jpeg_90 on gpu1 pid=2532419
+     launched jpeg_70 on gpu2 pid=2532425
+     … +4 lines (ctrl+o to expand)
+
+● Monitor(GenStack robust 384-tok rerun — JSONL writes + errors)
+  ⎿  Monitor started · task bn06ejcqo · timeout 3600s
+
+● All 7 launched in parallel — gpu01 GPUs 0/1/2/3, gpu02 GPUs 1/2/3. Monitor
+  bn06ejcqo armed (2-min poll). With max_new_tokens=384 and full parallelism,
+  expected wall ~5 hr.
+
+✻ Churned for 1m 32s
+
+❯ /model                                                                        
+  ⎿  Set model to Sonnet 4.6
+
+❯ /superpowers:brainstorming                                                    
+  ⎿  Context limit reached · /compact or /clear to continue
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 4.7 (1M context) (default)
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 4.7 (1M context) (default) with medium effort
+
+❯ Do one thing: go along with this diagram and explain to me each and every     
+  part. What does this mean and how is it working end to end? Explain to me     
+  each and every functionality and part and subpart present inside it. How is   
+  the image flowing via this diagram? I need to explain it in a presentation    
+  today so make sure you focus on each and every point in very very detail.     
+  [Image #7]                                                                    
+  ⎿  [Image #7]
+
+● GenStack Architecture — End-to-End Walkthrough
+
+  This is a detailed walkthrough of the diagram, in the order data actually
+  flows through the system. I'll cover every box, every label, every arrow.
+
+  ---
+  0. Input — single face image
+
+  A single RGB face image enters from the left edge of the diagram (the woman's
+  portrait). This same image is fanned out into two parallel branches (PACT and
+  Prism-SFT) and is the only raw input — everything downstream is computed from
+  it.
+
+  The two branches process the image independently and in parallel. Their
+  outputs are then fused by the third stage (MoE + gate) on the right.
+
+  ---
+  1. Branch 1 — PACT (Discriminative path) — top half, blue dashed box
+
+  This branch produces a single scalar fake probability by treating the image as
+   an ordinary CLIP feature map and adding a small forensic head on top.
+
+  1a. Vision Encoder — CLIP ViT-L/14 (yellow trapezoid with snowflake)
+
+  - The trapezoid is the CLIP ViT-Large/14 vision encoder.
+  - The snowflake icon = frozen. Not a single weight in this 304M-parameter
+  encoder is trained — it serves as a fixed, off-the-shelf semantic feature
+  extractor.
+  - Why CLIP: pretrained on 400M image-text pairs, it gives a strong
+  semantic-level embedding. Things like "this is a face", "this looks
+  studio-lit", "this looks anime-stylized" — all of that is already in the
+  features.
+  - Output: a sequence of patch tokens (a 16×16 grid → 256 patch tokens for a
+  224×224 image, plus a CLS token). The CLS token re-appears later as input to
+  the gate (right side).
+
+  1b. PGAD — Prototype-Guided Artifact Detector  (light-green box)
+
+  - 128 prototypes × 6 banks. The 6 banks are labeled: Texture, Edges, Color, 
+  Geometry, Semantics, Frequency.
+  - Each "prototype" is a learnable reference vector that represents one
+  canonical pattern of a forgery cue. Example: a "high-frequency checkerboard"
+  prototype in the Frequency bank, or a "skin-pore over-smoothing" prototype in
+  the Texture bank.
+  - Operation: PGAD does a cross-attention between CLIP patch tokens and the 768
+   (= 128 × 6) prototypes. For each image patch, "which forensic prototype does
+  this most resemble, and how strongly?"
+  - Why 6 banks: deepfake artifacts come in distinct flavors — GANs leave
+  frequency-domain fingerprints; diffusion leaves smooth texture; face-swap
+  leaves geometric warps at the boundary. Splitting by bank lets the system
+  answer cue-by-cue rather than forcing one monolithic detector.
+  - Output: a multi-channel heatmap-style representation that condenses where
+  and what kind of artifact is present.
+
+  1c. Classification Head (peach box with a small graph icon)
+
+  - A shallow 2-layer MLP with a learnable temperature.
+  - Takes the pooled PGAD output and produces a single sigmoid score.
+
+  1d. Continuous Fake Probability  $p_v(x) \in [0,1]$ (light-green box)
+
+  - Final scalar from PACT. 0 = real, 1 = fake, continuous in between (so you
+  keep calibration information, not just a hard label).
+  - This single number is one half of the (p_v, b_p) pair that gets fused later.
+  - Standalone, this branch already reaches 84.95% on HydraFake.
+
+  Big picture for Branch 1: it's a fast, frozen-backbone, semantically-grounded
+  discriminator. It's strong on most generators but plateaus when the forgery is
+   semantic (e.g. ICLight relighting), because semantic features are exactly
+  what CLIP is calibrated for — relit fakes look semantically ordinary.
+
+  ---
+  2. Branch 2 — Prism-SFT (Multi-view MLLM reasoner) — bottom half, red dashed 
+  box
+
+  This branch produces a binary verdict plus a structured natural-language 
+  rationale, by giving an MLLM three different "views" of the same image.
+
+  2a. Three input views — the three small images on the left of this branch
+
+  The same input image is rendered three ways:
+
+  - Original RGB image (top — comes directly from the input arrow).
+  - FFT Map (the rainbow-colored spectrum image): take the 2-D Fourier transform
+   of the image, take log-magnitude, render with a JET colormap. This makes
+  high-frequency artifacts visible — GAN-generated images often have a tell-tale
+   cross or spike pattern in the spectrum.
+  - Noise Residual Map (the gray ghostly image): compute  $x -
+  \text{GaussianBlur}_{\sigma=3}(x)$. This subtracts a smoothed version of the
+  image, leaving only the high-frequency residual — i.e., the camera/sensor
+  noise pattern (or the absence of one, in synthetic images). Real cameras leave
+   a coherent noise floor; generators often leave none, or a different one.
+
+  These three views give the MLLM three orthogonal channels of evidence.
+  Crucially, FFT and noise-residual are not in the channel a normal vision
+  encoder reads — handing them in explicitly is what lets the MLLM "see"
+  forensic cues it would otherwise be blind to.
+
+  2b. Multi-image Prompt (light-blue box)
+
+  - Literal text shown:
+  [image][image][image]
+  Determine the authenticity of this face using the original image and forensic
+  maps.
+  - The [image] tokens are placeholders that the MLLM tokenizer replaces with
+  the three images' visual embeddings, in order: RGB, FFT, noise-residual.
+  - The natural-language instruction tells the model what to do with them.
+
+  2c. InternVL3-8B Backbone (red box with flame icon)
+
+  - InternVL3-8B: a vision-language model with an 8B-parameter LLM and a vision
+  encoder that natively handles multi-image input.
+  - The flame icon = trainable. Concretely we apply LoRA adapters with rank
+  r=128, α=256, and we unfreeze the vision encoder so it can adapt to the
+  unusual statistics of FFT spectra and noise residuals (which are far outside
+  the distribution of typical pretraining images).
+  - Trained via SFT on the prism_sft_36k dataset using AdamW, lr 5×10⁻⁵, 3
+  epochs, 4 GPUs.
+
+  2d. LLM Rationale (Structured) — gray box bottom-right of this branch
+
+  The model is forced to output a fixed XML-tagged trace:
+  <plan> ... </plan>            ← which regions/views to inspect
+  <examine region="..."> ... </examine>   ← cite spectral/residual evidence
+  <conclude> ... </conclude>    ← synthesize the evidence
+  <answer> real / fake </answer>
+  - The structure is enforced by the SFT training data — the model never
+  generates free-form prose, it always emits these four blocks in order.
+  - Why structured: (i) forces the model to actually inspect before deciding,
+  (ii) gives us an interpretable trace to show users, (iii) the final <answer>
+  is trivial to parse.
+
+  2e. Binary Reasoning Verdict  $b_p(x) \in {0,1}$ (purple box)
+
+  - Parsed from the <answer> tag — 1 if "fake", 0 if "real".
+  - This is the second half of the (p_v, b_p) pair.
+  - Standalone, Prism-SFT alone reaches 88.22% on HydraFake.
+
+  Big picture for Branch 2: it's a slow, multi-view, reasoning-based detector.
+  Its FFT and noise channels catch generators where CLIP semantics fail
+  (frequency-domain GAN signatures, etc.), and its structured rationale is what
+  makes the system explainable.
+
+  ---
+  3. MoE + Gating — fusion stage — right side, orange box
+
+  Here the two scalars  $p_v, b_p$ are combined into the final verdict. The 
+  whole point of this stage: the correct way to combine the two branches is
+  generator-dependent — sometimes PACT is right, sometimes Prism is right,
+  sometimes their disagreement is what carries the signal.
+
+  3a. Joint Branch O/P  $(p_v(x), b_p(x))$  (yellow box)
+
+  - Just packs the two branch outputs into a 2-d feature  $(p_v, b_p)$.
+  - This is what the experts consume.
+
+  3b. Learned Soft Gate  $\pi(x)$  (yellow box)
+
+  - $\pi(x) = (\pi_1, \dots, \pi_{23})$  is a 23-dimensional probability vector
+  over HydraFake's 23 generators.
+  - Implemented as a multinomial logistic regression on the ℓ₂-normalized CLIP 
+  CLS embedding of the image (shown by the dashed arrow on the right side: the
+  CLS feature was already extracted by Branch 1, so the gate is essentially
+  free).
+  - "Soft" = doesn't pick one generator and forward only there; it produces a
+  distribution (probabilities summing to 1) and uses it as mixing weights.
+  - Diagnostic: the gate's top-1 generator-id accuracy is 71.0%, top-3 is 81.3%
+  (vs 4.35% chance for 23-way classification). It's not perfect, but it's
+  accurate enough that the soft mixing recovers from the residual error.
+
+  3c. Per-Generator Mixture of Experts  (large green box with  $f_1, f_2, f_3, 
+  \dots, f_{23}$)
+
+  - 23 small Gradient-Boosting expert classifiers, one per HydraFake generator.
+  - Each expert  $f_g \colon \mathbb{R}^2 \to [0,1]$  is fit on the (p_v, b_p)
+  pairs from images of generator g (and a corresponding sample of real images),
+  and learns the best decision rule for that generator.
+    - For most generators that rule is roughly "average of p_v and b_p".
+    - For ICLight, the rule is non-monotone in p_v — neither base detector alone
+   exceeds 56%, but their disagreement is highly informative, and a
+  Gradient-Boosted tree captures that interaction effortlessly. A single global
+  combiner cannot.
+
+  3d. Final Prediction  (orange box)
+
+  $$
+  \hat{y}(x) ;=; \sum_{g \in G}, \pi_g(x),\cdot,f_g!\bigl(p_v(x),,b_p(x)\bigr)
+  $$
+
+  - Soft mixture: every expert is consulted; their answers are weighted by the
+  gate's confidence in each generator.
+  - This is exactly an MoE forward pass — but with experts pre-trained
+  per-generator and a logistic-regression gate, no end-to-end joint training of
+  experts and gate.
+  - Cost: the entire fusion stage is <100K parameters, <0.1 ms/image, <1 minute 
+  to train from cached base predictions.
+
+  3e. Verdict — Real or Fake  (blue box)
+
+  Threshold  $\hat{y}(x)$  at 0.5 to get the final binary label.
+
+  ---
+  4. End-to-end data flow — the one-paragraph version
+
+  An image enters from the left. It is sent to Branch 1 (PACT): a frozen CLIP
+  ViT-L/14 encodes it; PGAD (128 prototypes × 6 forensic banks) produces a
+  multi-bank artifact map; a small classification head emits a continuous fake
+  probability  $p_v$. In parallel, the image is sent to Branch 2 (Prism-SFT):
+  the system computes its FFT spectrum and its high-pass noise residual, packs
+  all three views (RGB, FFT, noise) into a multi-image prompt, and feeds them to
+   a LoRA-fine-tuned InternVL3-8B. The MLLM produces a structured rationale
+  (<plan>…<examine>…<conclude>…<answer>) from which we parse a binary verdict
+  $b_p$. The pair  $(p_v, b_p)$ is consumed by the fusion stage: a learned soft
+  gate  $\pi(x)$  — built on CLIP's CLS embedding (already free from Branch 1) —
+   outputs a 23-way distribution over generators, and 23 per-generator 
+  Gradient-Boosting experts each emit a fake-probability for the input. Their
+  answers are mixed by the gate to produce  $\hat{y}(x) = \sum_g
+  \pi_g(x),f_g(p_v, b_p)$, thresholded at 0.5 to give the final Real / Fake
+  verdict.
+
+  ---
+  5. Cheat-sheet for the talk — what to emphasize for each stage
+
+  ┌───────────┬─────────────────────────────────────────────────────────────┐
+  │   Stage   │                   One-sentence sound bite                   │
+  ├───────────┼─────────────────────────────────────────────────────────────┤
+  │ PACT      │ "Frozen CLIP + a tiny forensic head — fast, semantic,       │
+  │           │ sample-efficient."                                          │
+  ├───────────┼─────────────────────────────────────────────────────────────┤
+  │ Prism-SFT │ "MLLM that reasons over RGB + FFT + noise residual — sees   │
+  │           │ forensic cues a vanilla VLM is blind to."                   │
+  ├───────────┼─────────────────────────────────────────────────────────────┤
+  │ MoE +     │ "The right way to combine the two depends on the generator; │
+  │ gate      │  we let a free CLIP-CLS gate route to one of 23 GB          │
+  │           │ experts."                                                   │
+  ├───────────┼─────────────────────────────────────────────────────────────┤
+  │ Final eq. │ $\hat{y}(x)=\sum_g \pi_g(x),f_g(p_v,b_p)$ — soft mixture,   │
+  │           │ not hard routing.                                           │
+  ├───────────┼─────────────────────────────────────────────────────────────┤
+  │ Punchline │ 92.83% on HydraFake — +2.13 pp over Veritas, with <1M extra │
+  │           │  trainable parameters and no RL stage.                      │
+  └───────────┴─────────────────────────────────────────────────────────────┘
+
+  ---
+  6. Anticipated questions during the talk
+
+  - "Why two branches and not one bigger model?" — They fail on disjoint subsets
+   of inputs (CLIP misses frequency artifacts; the MLLM, on a single RGB view,
+  misses things CLIP catches). Structurally complementary errors compress when
+  fused.
+  - "Why per-generator experts and not one combiner?" — On generators like
+  ICLight, the decision boundary is non-monotone in (p_v, b_p) — disagreement is
+   the signal. A single global classifier cannot express this; per-generator GB
+  can.
+  - "Doesn't per-generator routing require knowing the generator at inference?"
+  — No. The gate predicts the generator from the image (top-1 71%, top-3 81%).
+  Soft mixing absorbs the residual gate error.
+  - "Where do the 8 Forgery Prompt Tokens you mention in the paper fit?" — They
+  sit between the patch-tokenizer and the frozen CLIP encoder in the PACT branch
+   (not drawn as a separate box in this diagram — they're inside the "Vision
+  Encoder" trapezoid). They're 8 learnable tokens prepended to the patch
+  sequence; together with PGAD they're the only trainable parameters in PACT
+  (~1.24 M).
+  - "Can the gate handle a brand-new generator?" — Yes, with a small drop. The
+  Leave-One-Generator-Out study shows the soft mix degrades by only −2.88 pp on
+  average when the held-out generator is unseen.
+
+  That's the whole pipeline, end to end, every box, every arrow.
+
+✻ Baked for 1m 33s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — all 7 conditions writing in parallel, ~14 samples each in
+  the first ~5 min after launch. On track.
+
+✻ Sautéed for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~12 samples/min per slot (roughly 2 hr ETA per condition).
+
+✻ Crunched for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~4% done.
+
+✻ Baked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~6% done.
+
+✻ Cooked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~7% done.
+
+✻ Baked for 2s
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~9% done.
+
+✻ Cooked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~10% done.
+
+✻ Sautéed for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~12% done.
+
+✻ Churned for 1s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~13% done.
+
+✻ Worked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~15% done.
+
+✻ Churned for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~16% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~18% done.
+
+✻ Sautéed for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~20% done.
+
+✻ Brewed for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~21% done.
+
+✻ Baked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~23% done.
+
+✻ Brewed for 2s
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~25% done.
+
+✻ Worked for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~26% done.
+
+✻ Crunched for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~27% done.
+
+✻ Churned for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~29% done.
+
+✻ Sautéed for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~31% done.
+
+✻ Crunched for 6s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~32% done.
+
+✻ Crunched for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~34% done.
+
+✻ Cogitated for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~36% done.
+
+✻ Cooked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~37% done.
+
+✻ Sautéed for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~39% done.
+
+✻ Cogitated for 2s
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~40% done.
+
+✻ Cooked for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~42% done.
+
+✻ Churned for 2s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Routine progress — ~44% done.
+
+✻ Sautéed for 3s
+
+● Monitor event: "GenStack robust 384-tok rerun — JSONL writes + errors"
+
+● Bash(wc -l *.jsonl 2>&1; echo ---; ssh gpu01 "ps aux | grep genstack_robust |
+      grep -v grep | wc -l"; ssh gpu02 "ps aux | grep genstack_robust | grep -v
+      grep | wc -l")
+  ⎿     1500 blur_1.jsonl
+        1500 blur_2.jsonl
+        1500 blur_4.jsonl
+     … +8 lines (ctrl+o to expand)
+
+● Bash(cd /home/sachin.chaudhary/xgendet/checkpoints/final_results/genstack_robu
+      st_out
+      ls -la *.jsonl…)
+  ⎿  Waiting…

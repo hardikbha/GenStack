@@ -1,0 +1,37 @@
+# XGenDet Evaluation Configuration
+
+# Model
+model:
+  checkpoint: "./checkpoints/xgendet_stage1/best_model.pth"
+  stage2_lora: null  # Path to Stage 2 LoRA weights (optional)
+
+# Data
+data:
+  data_root: "/home/sachin.chaudhary/GTA"
+  crop_size: 224
+  num_workers: 8
+  batch_size: 128
+
+# Evaluation settings
+eval:
+  device: "cuda"
+  output_dir: "./results"
+
+  # Which evaluations to run
+  run_detection: true
+  run_heatmap: true
+  run_attributes: true
+  run_robustness: true
+  run_explanation: false  # Requires Stage 2 model
+
+  # Robustness perturbations
+  jpeg_qualities: [30, 50, 70, 90, 100]
+  blur_sigmas: [0.5, 1.0, 1.5, 2.0]
+  resize_scales: [0.5, 0.75, 1.0, 1.5]
+
+# Metrics
+metrics:
+  detection: ["AP", "AUC", "Acc", "F1", "ECE"]
+  localization: ["IoU", "PixelAP", "PointingGame"]
+  attributes: ["MAE", "Spearman"]
+  explanation: ["ROUGE-L"]

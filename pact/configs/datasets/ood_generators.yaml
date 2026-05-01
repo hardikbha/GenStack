@@ -1,0 +1,77 @@
+# Out-of-Domain Generators (Validation/Testing)
+# These are NOT seen during training
+
+data_root: "/home/sachin.chaudhary/GTA"
+
+generators:
+  crn:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/crn/0_real"
+    fake_dir: "OOD_GENERATORS/crn/1_fake"
+
+  cyclegan:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/cyclegan/0_real"
+    fake_dir: "OOD_GENERATORS/cyclegan/1_fake"
+
+  dalle:
+    family: diffusion
+    family_id: 2
+    real_dir: "OOD_GENERATORS/dalle/0_real"
+    fake_dir: "OOD_GENERATORS/dalle/1_fake"
+
+  deepfake:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/deepfake/0_real"
+    fake_dir: "OOD_GENERATORS/deepfake/1_fake"
+
+  gaugan:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/gaugan/0_real"
+    fake_dir: "OOD_GENERATORS/gaugan/1_fake"
+
+  imle:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/imle/0_real"
+    fake_dir: "OOD_GENERATORS/imle/1_fake"
+
+  san:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/san/0_real"
+    fake_dir: "OOD_GENERATORS/san/1_fake"
+
+  seeingdark:
+    family: diffusion
+    family_id: 2
+    real_dir: "OOD_GENERATORS/seeingdark/0_real"
+    fake_dir: "OOD_GENERATORS/seeingdark/1_fake"
+
+  stargan:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/stargan/0_real"
+    fake_dir: "OOD_GENERATORS/stargan/1_fake"
+
+  stylegan:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/stylegan/0_real"
+    fake_dir: "OOD_GENERATORS/stylegan/1_fake"
+
+  stylegan2:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/stylegan2/0_real"
+    fake_dir: "OOD_GENERATORS/stylegan2/1_fake"
+
+  whichfaceisreal:
+    family: gan
+    family_id: 1
+    real_dir: "OOD_GENERATORS/whichfaceisreal/0_real"
+    fake_dir: "OOD_GENERATORS/whichfaceisreal/1_fake"

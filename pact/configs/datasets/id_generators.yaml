@@ -1,0 +1,53 @@
+# In-Domain Generators (Training)
+# These are used for Stage 1 training
+
+data_root: "/home/sachin.chaudhary/GTA"
+
+generators:
+  ADM:
+    family: diffusion
+    family_id: 2
+    real_dir: "final_GENERATORS/ADM/real"
+    fake_dir: "final_GENERATORS/ADM/fake"
+
+  BigGAN:
+    family: gan
+    family_id: 1
+    real_dir: "final_GENERATORS/BigGAN/real"
+    fake_dir: "final_GENERATORS/BigGAN/fake"
+
+  glide:
+    family: diffusion
+    family_id: 2
+    real_dir: "final_GENERATORS/glide/real"
+    fake_dir: "final_GENERATORS/glide/fake"
+
+  LDM:
+    family: diffusion
+    family_id: 2
+    real_dir: "final_GENERATORS/LDM/real"
+    fake_dir: "final_GENERATORS/LDM/fake"
+
+  Midjourney:
+    family: diffusion
+    family_id: 2
+    real_dir: "final_GENERATORS/Midjourney/real"
+    fake_dir: "final_GENERATORS/Midjourney/fake"
+
+  progan:
+    family: gan
+    family_id: 1
+    real_dir: "final_GENERATORS/progan/real"
+    fake_dir: "final_GENERATORS/progan/fake"
+
+  VQDM:
+    family: diffusion
+    family_id: 2
+    real_dir: "final_GENERATORS/VQDM/real"
+    fake_dir: "final_GENERATORS/VQDM/fake"
+
+  wukong:
+    family: diffusion
+    family_id: 2
+    real_dir: "final_GENERATORS/wukong/real"
+    fake_dir: "final_GENERATORS/wukong/fake"

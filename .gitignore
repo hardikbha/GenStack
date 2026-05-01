@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.env
+.venv
+venv/
+env/
+*.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Build / latex
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.synctex.gz
+
+# Heavy artifacts (not in this repo — see README for download links)
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+
+# OS / scratch
+*.tmp
+.tmp/
+nohup.out

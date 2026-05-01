@@ -1,0 +1,44 @@
+# Smoke test config: ProGAN only, minimal data
+model:
+  clip_model: "ViT-L/14"
+  num_prompt_tokens: 8
+  num_prototypes: 128
+  proto_dim: 128
+  shuffle_patch_size: 32
+
+training:
+  lr: 0.0001
+  lr_ln: 0.000001
+  weight_decay: 0.01
+  batch_size: 4
+  epochs: 1
+  warmup_steps: 0
+  grad_accum: 1
+  seed: 42
+  patience: 5
+
+loss:
+  w_family: 0.5
+  w_proto_div: 0.3
+  w_proto_compact: 0.2
+  w_heatmap: 0.3
+  w_attr: 0.1
+  w_calib: 0.2
+
+data:
+  data_root: "/home/sachin.chaudhary/GTA"
+  crop_size: 224
+  num_workers: 0
+  max_samples_per_class: 50
+  jpeg_prob: 0.5
+  blur_prob: 0.5
+  id_generators:
+    - progan
+  ood_generators:
+    - stylegan
+
+logging:
+  output_dir: "./checkpoints"
+  exp_name: "smoke_test_v2"
+  log_freq: 5
+  save_freq: 1
